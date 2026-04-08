@@ -1,0 +1,97 @@
+configuration {
+    modi:                       "drun,run,window";
+    show-icons:                 false;
+    display-drun:               "APPS";
+    display-run:                "RUN";
+    display-window:             "WIN";
+    drun-display-format:        "{name}";
+}
+
+* {
+    font:                        "ProFont IIx Nerd Font Bold 14";
+    bg:                          #282828F2;
+    bg-alt:                      #1d2021;
+    fg:                          #ebdbb2;
+    green:                       #b8bb26;
+    aqua:                        #8ec07c;
+    yellow:                      #fabd2f;
+    gray:                        #928374;
+    border-col:                  #504945;
+}
+
+window {
+    width:                       450px;
+    transparency:                "real";
+    location:                    center;
+    anchor:                      center;
+    border:                      2px solid;
+    border-color:                @border-col;
+    border-radius:               12px;
+    background-color:            @bg;
+    padding:                     0px;
+}
+
+mainbox {
+    spacing:                     15px;
+    padding:                     25px;
+    children:                    [ "inputbar", "listview" ];
+    background-color:            transparent;
+}
+
+inputbar {
+    spacing:                     0px;
+    padding:                     0px;
+    background-color:            transparent;
+    text-color:                  @fg;
+    children:                    [ "prompt", "entry" ];
+}
+
+prompt {
+    padding:                     12px 20px;
+    background-color:            @aqua;
+    text-color:                  @bg-alt;
+    border-radius:               10px 0px 0px 10px;
+}
+
+entry {
+    padding:                     12px;
+    background-color:            @bg-alt;
+    text-color:                  @aqua;
+    border-radius:               0px 10px 10px 0px;
+    placeholder:                 "search...";
+    placeholder-color:           @gray;
+}
+
+listview {
+    columns:                     1;
+    lines:                       5;
+    cycle:                       true;
+    dynamic:                     true;
+    scrollbar:                   false;
+    layout:                      vertical;
+    spacing:                     5px;
+    background-color:            transparent;
+}
+
+element {
+    padding:                     10px 15px;
+    border-radius:               8px;
+    background-color:            transparent;
+    text-color:                  @fg;
+    orientation:                 horizontal;
+    border:                      0px 0px 0px 6px solid;
+    border-color:                @bg-alt;
+}
+
+element selected {
+    background-color:            #3c3836;
+    text-color:                  @green;
+    border-color:                @green;
+}
+
+element-text {
+    background-color:            transparent;
+    text-color:                  inherit;
+    vertical-align:              0.5;
+    margin:                      0px 0px 0px 10px;
+}

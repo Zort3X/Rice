@@ -1,0 +1,61 @@
+/**
+ * Surgical Power Menu (Pill)
+ **/
+
+configuration {
+    show-icons:                 false;
+}
+
+* {
+    font:                        "ProFont IIx Nerd Font Bold 15";
+    bg:                          #282828;
+    bg-alt:                      #373533;
+    fg:                          #ebdbb2;
+    green:                       #b8bb26;
+    red:                         #fb4934;
+}
+
+window {
+    width:                       500px;
+    location:                    center;
+    anchor:                      center;
+    fullscreen:                  false;
+    border:                      2px solid;
+    border-color:                @red;
+    border-radius:               12px;
+    background-color:            @bg;
+}
+
+mainbox {
+    padding:                     20px;
+    children:                    [ "listview" ];
+    background-color:            transparent;
+}
+
+listview {
+    columns:                     1;
+    lines:                       5;
+    spacing:                     5px;
+    cycle:                       true;
+    dynamic:                     true;
+    background-color:            transparent;
+}
+
+element {
+    padding:                     10px 15px;
+    border-radius:               8px;
+    background-color:            transparent;
+    text-color:                  @fg;
+}
+
+element selected {
+    background-color:            @red;
+    text-color:                  @bg;
+}
+
+element-text {
+    background-color:            transparent;
+    text-color:                  inherit;
+    vertical-align:              0.5;
+    horizontal-align:            0.5;
+}

@@ -1,0 +1,109 @@
+[
+    {
+        "position": "top",
+        "height": 38,
+        "spacing": 0,
+        "margin-top": 8,
+        "margin-bottom": 0,
+        "margin-left": 10,
+        "margin-right": 10,
+        "exclusive": true,
+        "reload_style_on_change": true,
+        "modules-left": [
+            "hyprland/workspaces",
+            "custom/sep",
+            "hyprland/window"
+        ],
+	"modules-center": [],
+        "modules-right": [
+            "custom/volume",
+            "custom/sep",
+            "custom/mic",
+            "custom/sep",
+            "custom/network",
+            "custom/sep",
+            "bluetooth",
+            "custom/sep",
+            "battery",
+            "custom/sep",
+            "hyprland/language",
+            "custom/sep",
+            "clock"
+        ],
+        "hyprland/workspaces": {
+            "format": "{icon}",
+            "on-click": "activate",
+            "format-icons": {
+                "1": "I", "2": "II", "3": "III", "4": "IV", "5": "V",
+                "6": "VI", "7": "VII", "8": "VIII", "9": "IX", "10": "X"
+            }
+        },
+        "hyprland/window": {
+            "format": "{}",
+            "separate-outputs": true,
+            "rewrite": {
+                "(.*)": "$1",
+                "": "Workspace {workspace}"
+            }
+        },
+        "clock": {
+            "format": "{:%H:%M <span color='#fe8019'>|</span> %d/%m}",
+            "interval": 1,
+            "locale": "en_US.UTF-8",
+            "tooltip": true,
+            "tooltip-format": "<span font='ProFont IIx Nerd Font Mono 13'>{calendar}</span>",
+            "calendar": {
+                "mode": "month",
+                "weeks-pos": "right",
+                "on-scroll": 1,
+                "format": {
+                    "months": "<span color='#b8bb26'><b>{}</b></span>",
+                    "days": "<span color='#d5c4a1'><b>{}</b></span>",
+                    "weeks": "<span color='#83a598'><b>W{}</b></span>",
+                    "weekdays": "<span color='#fabd2f'><b>{}</b></span>",
+                    "today": "<span color='#fb4934'><b><u>{}</u></b></span>"
+                }
+            }
+        },
+        "custom/volume": {
+            "exec": "vol=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print int($2*100)}'); muted=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ | grep MUTED); if [ -n \"$muted\" ]; then echo \"VOL: <span color='#fb4934'>Muted</span>\"; else if [ $vol -ge 80 ]; then color='#b8bb26'; elif [ $vol -ge 65 ]; then color='#83a598'; elif [ $vol -ge 26 ]; then color='#fabd2f'; else color='#fb4934'; fi; echo \"VOL: <span color='$color'>$vol%</span>\"; fi",
+            "interval": 1,
+            "on-click": "pavucontrol"
+        },
+        "custom/mic": {
+            "exec": "vol=$(wpctl get-volume @DEFAULT_AUDIO_SOURCE@ | awk '{print int($2*100)}'); muted=$(wpctl get-volume @DEFAULT_AUDIO_SOURCE@ | grep MUTED); if [ -n \"$muted\" ]; then echo \"MIC: <span color='#fb4934'>Muted</span>\"; else if [ $vol -ge 80 ]; then color='#b8bb26'; elif [ $vol -ge 65 ]; then color='#83a598'; elif [ $vol -ge 26 ]; then color='#fabd2f'; else color='#fb4934'; fi; echo \"MIC: <span color='$color'>$vol%</span>\"; fi",
+            "interval": 1,
+            "on-click": "pavucontrol"
+        },
+        "custom/network": {
+            "exec": "if nmcli device status | grep \"connected\" | grep -q \"ethernet\"; then echo \"NET: <span color='#b8bb26'>Connected</span>\"; else sig=$(nmcli -t -f SIGNAL,ACTIVE device wifi | grep \"yes\" | cut -d: -f1); if [ -z \"$sig\" ]; then echo \"NET: <span color='#fb4934'>Disconnected</span>\"; else if [ $sig -ge 80 ]; then color='#b8bb26'; elif [ $sig -ge 65 ]; then color='#83a598'; elif [ $sig -ge 26 ]; then color='#fabd2f'; else color='#fb4934'; fi; echo \"NET: <span color='$color'>$sig%</span>\"; fi; fi",
+            "interval": 2,
+            "on-click": "nm-connection-editor"
+        },
+        "bluetooth": {
+            "format": "BT: <span color='#b8bb26'>On</span>",
+            "format-on": "BT: <span color='#b8bb26'>On</span>",
+            "format-off": "BT: <span color='#fb4934'>Off</span>",
+            "format-disabled": "BT: <span color='#fb4934'>Off</span>",
+            "format-connected": "BT: <span color='#b8bb26'>{device_alias}</span>",
+            "on-click": "blueman-manager"
+        },
+        "battery": {
+            "interval": 5,
+            "states": { "high": 80, "mid": 65, "low": 26, "crit": 0 },
+            "format": "BAT: <span color='#b8bb26'>{capacity}%</span>",
+            "format-high": "BAT: <span color='#b8bb26'>{capacity}%</span>",
+            "format-mid": "BAT: <span color='#83a598'>{capacity}%</span>",
+            "format-low": "BAT: <span color='#fabd2f'>{capacity}%</span>",
+            "format-crit": "BAT: <span color='#fb4934'>{capacity}%</span>",
+            "format-charging": "BAT: <span color='#b8bb26'>{capacity}%++</span>",
+            "format-plugged": "BAT: <span color='#b8bb26'>{capacity}%++</span>"
+        },
+        "hyprland/language": {
+            "format": "Lg: <span color='#8ec07c'>{}</span>",
+            "format-en": "en",
+            "format-bg": "bg"
+        },
+        "custom/sep": { "format": "|", "tooltip": false }
+    }
+]
