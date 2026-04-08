@@ -46,35 +46,6 @@ chmod +x install.sh
 
 ---
 
-## 🛠️ Management (Git Guide)
-
-To keep your repo updated or upload changes, follow these steps:
-
-### 1. Check your status
-```bash
-git status
-```
-
-### 2. Stage your changes
-Add everything to the next commit:
-```bash
-git add .
-```
-
-### 3. Commit
-Save your changes with a surgical message:
-```bash
-git commit -m "feat: update waybar colors to surgical aqua"
-```
-
-### 4. Push to GitHub
-Upload your local commits to the cloud:
-```bash
-git push origin main
-```
-
----
-
 ## 🎨 Palette Reference
 - **Background:** `#282828`
 - **Text:** `#ebdbb2`
