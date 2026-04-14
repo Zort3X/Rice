@@ -118,10 +118,11 @@ DOTS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 mkdir -p ~/.config
 
 # Dynamically link based on selection
-CONFIGS=(fish rofi waybar mako fastfetch btop)
+CONFIGS=(fish rofi mako fastfetch btop)
 
 [[ $wm_choice == "1" ]] && CONFIGS+=(hypr)
 [[ $term_choice == "1" ]] && CONFIGS+=(alacritty)
+[[ $term_choice == "2" ]] && CONFIGS+=(foot)
 
 for config in "${CONFIGS[@]}"; do
     if [ -d "$HOME/.config/$config" ]; then
@@ -132,12 +133,17 @@ for config in "${CONFIGS[@]}"; do
 done
 
 # Handle Waybar Desktop/Laptop config
+if [ -d "$HOME/.config/waybar" ]; then
+    echo "Backing up existing waybar..."
+    mv "$HOME/.config/waybar" "$HOME/.config/waybar.bak"
+fi
+
 if [[ $laptop_choice == "y" || $laptop_choice == "Y" ]]; then
     echo "--- Setting Waybar Laptop config ---"
-    ln -sf "$DOTS_DIR/.config/waybar/config-laptop.jsonc" ~/.config/waybar/config.jsonc
+    ln -s "$DOTS_DIR/.config/waybar_laptop" "$HOME/.config/waybar"
 else
     echo "--- Setting Waybar Desktop config ---"
-    ln -sf "$DOTS_DIR/.config/waybar/config-desktop.jsonc" ~/.config/waybar/config.jsonc
+    ln -s "$DOTS_DIR/.config/waybar_desktop" "$HOME/.config/waybar"
 fi
 
 # 7. Setting Fish as default shell
