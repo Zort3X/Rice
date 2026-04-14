@@ -7,21 +7,7 @@ set -e
 
 echo "--- Starting Interactive Surgical Install ---"
 
-# 1. Base dependencies for building and AUR access
-sudo pacman -Syu --noconfirm
-sudo pacman -S --needed --noconfirm base-devel git
-
-# 2. Install yay (AUR Helper) if not present
-if ! command -v yay &> /dev/null; then
-    echo "--- Installing yay ---"
-    git clone https://aur.archlinux.org/yay.git /tmp/yay
-    cd /tmp/yay
-    makepkg -si --noconfirm
-    cd -
-    rm -rf /tmp/yay
-fi
-
-# 3. Interactive Configuration Questions
+# 1. Interactive Configuration Questions (FRONT-LOADED)
 echo ""
 echo "--- Installation Options ---"
 read -p "Choose your Window Manager (1: Hyprland, 2: Sway): " wm_choice
@@ -29,7 +15,7 @@ read -p "Choose your Terminal (1: Alacritty, 2: Foot): " term_choice
 read -p "Are you on a Laptop? (y/n): " laptop_choice
 read -p "Choose your GPU (1: AMD, 2: NVIDIA, 3: Intel, 4: Generic/VM): " gpu_choice
 
-# 4. Building the Package Lists
+# 2. Building the Package Lists (PRE-PROCESS)
 PACKAGES_GLOBAL=(
     fish neovim tldr btop yazi udisks2 rofi-wayland waybar mako 
     zen-browser-bin vesktop spotify-launcher bluetui wifitui-bin 
@@ -42,7 +28,7 @@ PACKAGES_HYPRLAND=(
 )
 
 PACKAGES_SWAY=(
-    sway swaybg swayidle swaylock grim slurp 
+    swayfx swaybg swayidle swaylock grim slurp 
     xdg-desktop-portal-wlr autotiling
 )
 
@@ -107,6 +93,21 @@ case $gpu_choice in
         FINAL_PACKAGES+=("mesa" "lib32-mesa")
         ;;
 esac
+
+# 3. Base dependencies for building and AUR access
+echo "--- Updating System and Installing Base Dependencies ---"
+sudo pacman -Syu --noconfirm
+sudo pacman -S --needed --noconfirm base-devel git
+
+# 4. Install yay (AUR Helper) if not present
+if ! command -v yay &> /dev/null; then
+    echo "--- Installing yay ---"
+    git clone https://aur.archlinux.org/yay.git /tmp/yay
+    cd /tmp/yay
+    makepkg -si --noconfirm
+    cd -
+    rm -rf /tmp/yay
+fi
 
 # 5. Final Installation Execution
 echo "--- Installing Selected Packages ---"
