@@ -1,9 +1,13 @@
 # Gruvbox Rice
 
-⚠️ WARNING: NVIDIA users must verify `nvidia-drm.modeset=1` in GRUB. Intel/Laptop users must ensure `mesa` and `intel-media-driver` are installed to avoid artifacts.
+⚠️ **WARNING: Hardware-Specific Calibration**
+This repository is a personal project optimized for a specific hardware ecosystem. It includes drivers and kernel parameters tailored for NVIDIA (GT 1030), AMD (7800X3D), and legacy Intel (X230 Laptop) systems.
+- **NVIDIA Users**: Ensure `nvidia-drm.modeset=1` is active in GRUB to prevent Wayland initialization failure.
+- **Legacy Intel**: Driver choices (e.g., `intel-media-driver`) are calibrated for stability on older G4400 and X230 architectures.
+- **Package Selection**: Software lists are subjective and functional for my workflow. Review `install.sh` before execution.
 
 ## Palette
-- Theme: Gruvbox Deep | Accent: Green (#b8bb26) | Background: #282828
+- Theme: Gruvbox Dark (Main accent: Green)
 
 ## Essential Keybinds
 | Action | Keybind |
@@ -18,11 +22,9 @@
 | Exit WM | `$mod + Shift + E` |
 
 ## Post-Install Checklist
-- Check `~/.config/hypr/hyprland.conf` or `~/.config/sway/config` for monitor resolution.
-- Set keyboard layout (default: us,bg).
-- Verify `seat0` cursor theme (Bibata-Modern-Classic).
+- Verify monitor resolution in `~/.config/hypr/hyprland.conf` or `~/.config/sway/config`.
+- Confirm keyboard layout in the WM input section (default: us,bg).
+- Check `seat0` cursor theme configuration.
 
 ## Credits
 - GRUB Theme: [OldBIOS](https://github.com/Blaysht/grub_bios_theme) by Blaysht.
-
-- README optimized: true
