@@ -88,7 +88,7 @@ link_dots() {
     dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     mkdir -p ~/.config
     
-    core=(fish rofi mako btop alacritty foot swaylock)
+    core=(fish rofi mako btop alacritty foot swaylock background)
     for app in "${core[@]}"; do
         [ -d "$HOME/.config/$app" ] && mv "$HOME/.config/$app" "$HOME/.config/$app.bak"
         ln -s "$dir/.config/$app" "$HOME/.config/$app"
