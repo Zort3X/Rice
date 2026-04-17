@@ -3,7 +3,7 @@
 ⚠️ **WARNING: Hardware-Specific Calibration**
 This repository is a personal project optimized for a specific hardware ecosystem. It includes drivers and kernel parameters tailored for NVIDIA (GT 1030), AMD (7800X3D), and legacy Intel (X230 Laptop) systems.
 - **NVIDIA Users**: Ensure `nvidia-drm.modeset=1` is active in GRUB to prevent Wayland initialization failure.
-- **Legacy Intel**: Driver choices (e.g., `intel-media-driver`) are calibrated for stability on older G4400 and X230 architectures.
+- **Legacy Intel**: Driver choices (e.g., `intel-media-driver`) are calibrated for stability on older intel CPUs.
 - **Package Selection**: Software lists are subjective and functional for my workflow. Review `install.sh` before execution.
 
 ## Palette
