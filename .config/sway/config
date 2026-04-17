@@ -22,7 +22,7 @@ default_dim_inactive 0.06
 
 ### Autostart
 exec dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
-exec waybar
+exec waybar & wl-paste --type text --watch cliphist store & wl-paste --type image --watch cliphist store & autotiling
 exec swaybg -i ~/.config/background/bg.png -m fill || swaybg -c '#282828'
 exec mako
 exec $HOME/.config/sway/swayidle.sh
