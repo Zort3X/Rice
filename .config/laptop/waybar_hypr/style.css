@@ -83,7 +83,7 @@ window#waybar {
 
 #clock {
     padding: 1px 16px;
-    min-width: 85px;
+    min-width: 100px;
 }
 
 #custom-sep {

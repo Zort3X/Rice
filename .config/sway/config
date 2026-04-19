@@ -24,8 +24,14 @@ default_dim_inactive 0.06
 exec dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway
 exec waybar & wl-paste --type text --watch cliphist store & wl-paste --type image --watch cliphist store & autotiling
 exec swaybg -i ~/.config/background/bg.png -m fill || swaybg -c '#282828'
-exec mako
-exec $HOME/.config/sway/swayidle.sh
+# Direct Swayidle logic (Calibrated for Laptop - will be symlinked)
+exec swayidle -w \
+    timeout 150 'brightnessctl -s set 10%' resume 'brightnessctl -r' \
+    timeout 300 "swaylock" \
+    timeout 600 'swaymsg "output * power off"' resume 'swaymsg "output * power on"' \
+    timeout 1200 'systemctl suspend' \
+    timeout 2400 'systemctl hibernate' \
+    before-sleep "swaylock"
 exec swaymsg "seat seat0 xcursor_theme Bibata-Modern-Classic 24"
 
 ### Input

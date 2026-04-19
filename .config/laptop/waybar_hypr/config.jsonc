@@ -24,7 +24,7 @@
             "custom/sep",
             "bluetooth",
             "custom/sep",
-            "battery",
+            "custom/battery",
             "custom/sep",
             "hyprland/language",
             "custom/sep",
@@ -88,10 +88,11 @@
             "format-connected": "BT: <span color='#b8bb26'>{device_alias}</span>",
             "on-click": "blueman-manager"
         },
-        "battery": {
-            "interval": 5,
-            "states": { "high": 80, "mid": 65, "low": 26, "crit": 0 },
-            "format": "BAT: <span color='#b8bb26'>{capacity}%</span>",
+        "custom/battery": {
+            "exec": "cap=$(cat /sys/class/power_supply/BAT0/capacity); stat=$(cat /sys/class/power_supply/BAT0/status); if [ \"$stat" = "Charging" ] || [ \"$stat" = "Full" ]; then echo \"BAT: <span color='#b8bb26'>$cap%++</span>\"; else if [ $cap -ge 80 ]; then color='#b8bb26'; elif [ $cap -ge 65 ]; then color='#83a598'; elif [ $cap -ge 26 ]; then color='#fabd2f'; else color='#fb4934'; fi; echo \"BAT: <span color='$color'>$cap%</span>\"; fi",
+            "interval": 10
+        },
+            "format": "BAT: {capacity}%",
             "format-high": "BAT: <span color='#b8bb26'>{capacity}%</span>",
             "format-mid": "BAT: <span color='#83a598'>{capacity}%</span>",
             "format-low": "BAT: <span color='#fabd2f'>{capacity}%</span>",
@@ -100,7 +101,7 @@
             "format-plugged": "BAT: <span color='#b8bb26'>{capacity}%++</span>"
         },
         "hyprland/language": {
-            "format": "Lg: <span color='#8ec07c'>{}</span>",
+            "format": "Lg: <span color='#8ec07c'>{}</span>", "min-length": 5,
             "format-en": "en",
             "format-bg": "bg"
         },

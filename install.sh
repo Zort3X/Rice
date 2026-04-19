@@ -4,10 +4,14 @@ set -e
 
 # Interactive Setup
 setup_vars() {
-    echo "--- Surgical Gruvbox Installer ---"
+    echo "--- Gruvbox Rice Installer ---"
+    echo "!! WARNING: Verify drivers in script before proceeding !!"
+    echo "!! NOTE: Tailscale requires manual 'tailscale up' after install !!"
+    
     read -p "WM (1: Hypr, 2: Sway): " wm
     read -p "Laptop (y/n): " laptop
     read -p "GPU (1: AMD, 2: NVIDIA, 3: Intel, 4: VM): " gpu
+    read -p "Install SSH (y/n): " ssh_choice
     
     [[ $wm == "1" ]] && term="alacritty" || term="foot"
     [[ $laptop == "y" || $laptop == "Y" ]] && profile="laptop" || profile="desktop"
@@ -16,9 +20,9 @@ setup_vars() {
 }
 
 build_pkgs() {
-    base=(fish neovim tldr btop yazi udisks2 rofi-wayland waybar mako zen-browser-bin vesktop spotify-launcher bluetui wifitui-bin ttf-profont-nerd bibata-cursor-theme-bin ly earlyoom zram-generator gamemode lib32-gamemode fastfetch cliphist irqbalance wl-clipboard)
+    base=(fish neovim tldr btop yazi udisks2 rofi-wayland waybar mako zen-browser-bin vesktop spotify-launcher bluetui wifitui-bin ttf-profont-nerd bibata-cursor-theme-bin ly earlyoom zram-generator gamemode lib32-gamemode fastfetch cliphist irqbalance wl-clipboard 7zip tailscale fail2ban)
     hypr=(hyprland hyprpaper hypridle hyprlock hyprshot xdg-desktop-portal-hyprland)
-    sway=(swayfx swaybg swayidle swaylock-effects-git grim slurp jq xdg-desktop-portal-wlr autotiling)
+    sway=(swayfx swaybg swayidle swaylock-effects-git grim slurp xdg-desktop-portal-wlr autotiling)
     port=(tlp acpi_call tp_smapi brightnessctl acpi x86_energy_perf_policy)
     amd=(mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon libva-mesa-driver lib32-libva-mesa-driver mesa-vdpau lib32-mesa-vdpau)
     nv=(nvidia-dkms nvidia-utils lib32-nvidia-utils nvidia-settings egl-wayland libva-nvidia-driver)
@@ -26,6 +30,7 @@ build_pkgs() {
 
     list=("${base[@]}")
     [[ $wm == "1" ]] && list+=("${hypr[@]}") || list+=("${sway[@]}")
+    [[ $ssh_choice == "y" || $ssh_choice == "Y" ]] && list+=("openssh")
     list+=("$term")
     [[ $profile == "laptop" ]] && list+=("${port[@]}")
     
@@ -71,13 +76,14 @@ EOF
 
 conf_grub() {
     if [ -f /etc/default/grub ]; then
-        dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-        if [ -d "$dir/grub_bios_theme/OldBIOS" ]; then
-            sudo mkdir -p /boot/grub/themes
-            sudo cp -r "$dir/grub_bios_theme/OldBIOS" /boot/grub/themes/
-            sudo sed -i 's|^#GRUB_THEME=.*|GRUB_THEME="/boot/grub/themes/OldBIOS/theme.txt"|' /etc/default/grub
-        fi
+        echo "--- Installing OldBIOS GRUB Theme ---"
+        rm -rf /tmp/grub_theme
+        git clone https://github.com/Blaysht/grub_bios_theme.git /tmp/grub_theme
+        sudo mkdir -p /boot/grub/themes
+        sudo cp -r /tmp/grub_theme/OldBIOS /boot/grub/themes/
+        
         sudo sed -i 's/^GRUB_GFXMODE=.*/GRUB_GFXMODE=1920x1080,auto/' /etc/default/grub
+        sudo sed -i 's|^#GRUB_THEME=.*|GRUB_THEME="/boot/grub/themes/OldBIOS/theme.txt"|' /etc/default/grub
         [[ $gpu == "2" ]] && sudo sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="nvidia-drm.modeset=1 /' /etc/default/grub
         sudo grub-mkconfig -o /boot/grub/grub.cfg
     fi
@@ -88,39 +94,47 @@ link_dots() {
     dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     mkdir -p ~/.config
     
-    core=(fish rofi mako btop alacritty foot swaylock background)
+    core=(alacritty background btop fastfetch fish foot mako rofi swaylock)
     for app in "${core[@]}"; do
-        [ -d "$HOME/.config/$app" ] && mv "$HOME/.config/$app" "$HOME/.config/$app.bak"
+        rm -rf "$HOME/.config/$app"
         ln -s "$dir/.config/$app" "$HOME/.config/$app"
     done
     
-    [ -d "$HOME/.config/fastfetch" ] && mv "$HOME/.config/fastfetch" "$HOME/.config/fastfetch.bak"
-    ln -s "$dir/.config/$profile/fastfetch" "$HOME/.config/fastfetch"
-    
     if [[ $wm == "1" ]]; then
-        [ -d "$HOME/.config/hypr" ] && mv "$HOME/.config/hypr" "$HOME/.config/hypr.bak"
-        mkdir -p ~/.config/hypr
+        rm -rf "$HOME/.config/hypr" && mkdir -p ~/.config/hypr
         ln -s "$dir/.config/hypr/hyprland.conf" "$HOME/.config/hypr/hyprland.conf"
         ln -s "$dir/.config/hypr/hyprlock.conf" "$HOME/.config/hypr/hyprlock.conf"
         ln -s "$dir/.config/hypr/hyprpaper.conf" "$HOME/.config/hypr/hyprpaper.conf"
         ln -s "$dir/.config/$profile/hypr/hypridle.conf" "$HOME/.config/hypr/hypridle.conf"
-        [ -d "$HOME/.config/waybar" ] && mv "$HOME/.config/waybar" "$HOME/.config/waybar.bak"
+        rm -rf "$HOME/.config/waybar"
         ln -s "$dir/.config/$profile/waybar_hypr" "$HOME/.config/waybar"
     else
-        [ -d "$HOME/.config/sway" ] && mv "$HOME/.config/sway" "$HOME/.config/sway.bak"
-        mkdir -p ~/.config/sway
+        rm -rf "$HOME/.config/sway" && mkdir -p ~/.config/sway
         ln -s "$dir/.config/sway/config" "$HOME/.config/sway/config"
-        ln -s "$dir/.config/$profile/sway/swayidle.sh" "$HOME/.config/sway/swayidle.sh"
-        chmod +x "$HOME/.config/sway/swayidle.sh"
-        [ -d "$HOME/.config/waybar" ] && mv "$HOME/.config/waybar" "$HOME/.config/waybar.bak"
+        # Removed swaylock.sh script linking
+        rm -rf "$HOME/.config/waybar"
         ln -s "$dir/.config/$profile/waybar_sway" "$HOME/.config/waybar"
     fi
     echo "- Configuration linking successful: true"
 }
 
 conf_services() {
-    sudo systemctl enable earlyoom irqbalance gamemoded ly
+    # Clean service enablement list
+    sudo systemctl enable NetworkManager ufw earlyoom irqbalance gamemoded udisks2 ly
+    
+    # UFW Configuration
+    echo "--- Configuring UFW Security ---"
+    sudo ufw default deny incoming
+    sudo ufw default allow outgoing
+    sudo ufw allow ssh
+    sudo ufw allow 41641/udp # Tailscale
+    sudo ufw --force enable
+    
+    # Display Manager Setup
+    sudo systemctl disable getty@tty1.service
+    
     [[ $profile == "laptop" ]] && sudo systemctl enable tlp
+    [[ $ssh_choice == "y" || $ssh_choice == "Y" ]] && sudo systemctl enable sshd
     
     sudo tee /etc/systemd/zram-generator.conf <<EOF
 [zram0]
@@ -128,11 +142,18 @@ zram-size = min(ram / 2, 4096)
 compression-algorithm = zstd
 EOF
     
-    [[ $SHELL != "/usr/bin/fish" ]] && chsh -s /usr/bin/fish
-    echo "- Services and shell configured: true"
+    echo "--- Configuring Fish Shell ---"
+    sudo pacman -S --needed --noconfirm curl
+    fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher"
+    fish -c "fisher install franciscolourenco/done"
+    
+    sudo chsh -s /usr/bin/fish $USER
+    
+    # Cleanup temp build files
+    rm -rf /tmp/yay /tmp/grub_theme
+    echo "- Services and shell configured (Temp cleaned): true"
 }
 
-# Run
 setup_vars
 build_pkgs
 sys_init

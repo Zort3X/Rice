@@ -33,6 +33,7 @@ nano install.sh # Review package lists
 ```
 
 ### 2. Execute
+Follow the interactive prompts to select your Window Manager, hardware profile, GPU driver, and optional SSH server installation.
 ```bash
 chmod +x install.sh
 ./install.sh
