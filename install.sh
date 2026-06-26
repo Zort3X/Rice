@@ -24,7 +24,7 @@ build_pkgs() {
     hypr=(hyprland hyprpaper hypridle hyprlock hyprshot xdg-desktop-portal-hyprland)
     sway=(swayfx swaybg swayidle swaylock-effects-git grim slurp xdg-desktop-portal-wlr autotiling)
     port=(tlp acpi_call tp_smapi brightnessctl acpi x86_energy_perf_policy)
-    amd=(mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon libva-mesa-driver lib32-libva-mesa-driver mesa-vdpau lib32-mesa-vdpau)
+    amd=(mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon libva-mesa-driver lib32-libva-mesa-driver)
     nv=(nvidia-dkms nvidia-utils lib32-nvidia-utils nvidia-settings egl-wayland libva-nvidia-driver)
     intel=(mesa lib32-mesa vulkan-intel lib32-vulkan-intel intel-media-driver libva-intel-driver libva-utils)
 
@@ -90,37 +90,61 @@ conf_grub() {
     echo "- GRUB configuration applied: true"
 }
 
-link_dots() {
+distribute_dots() {
     dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     mkdir -p ~/.config
     
-    core=(alacritty background btop fastfetch fish foot mako rofi swaylock)
+    # Core global apps (Only adds the terminal you actually selected)
+    core=(background btop fish mako rofi swaylock)
+    core+=("$term")
+    
+    # Copy selected global apps directly into .config
     for app in "${core[@]}"; do
         rm -rf "$HOME/.config/$app"
-        ln -s "$dir/.config/$app" "$HOME/.config/$app"
+        if [ -d "$dir/.config/$app" ]; then
+            cp -r "$dir/.config/$app" "$HOME/.config/$app"
+        fi
     done
     
+    # Copy profile-specific fastfetch configurations directly
+    rm -rf "$HOME/.config/fastfetch"
+    if [ -d "$dir/.config/$profile/fastfetch" ]; then
+        cp -r "$dir/.config/$profile/fastfetch" "$HOME/.config/fastfetch"
+    fi
+    
+    # Distribute Window Manager & Profile-specific setups cleanly
     if [[ $wm == "1" ]]; then
         rm -rf "$HOME/.config/hypr" && mkdir -p ~/.config/hypr
-        ln -s "$dir/.config/hypr/hyprland.conf" "$HOME/.config/hypr/hyprland.conf"
-        ln -s "$dir/.config/hypr/hyprlock.conf" "$HOME/.config/hypr/hyprlock.conf"
-        ln -s "$dir/.config/hypr/hyprpaper.conf" "$HOME/.config/hypr/hyprpaper.conf"
-        ln -s "$dir/.config/$profile/hypr/hypridle.conf" "$HOME/.config/hypr/hypridle.conf"
+        cp "$dir/.config/hypr/hyprland.conf" "$HOME/.config/hypr/hyprland.conf"
+        cp "$dir/.config/hypr/hyprlock.conf" "$HOME/.config/hypr/hyprlock.conf"
+        cp "$dir/.config/hypr/hyprpaper.conf" "$HOME/.config/hypr/hyprpaper.conf"
+        
+        # Copy profile-specific hypridle
+        if [ -f "$dir/.config/$profile/hypr/hypridle.conf" ]; then
+            cp "$dir/.config/$profile/hypr/hypridle.conf" "$HOME/.config/hypr/hypridle.conf"
+        fi
+        
+        # Copy profile-specific waybar for hyprland
         rm -rf "$HOME/.config/waybar"
-        ln -s "$dir/.config/$profile/waybar_hypr" "$HOME/.config/waybar"
+        if [ -d "$dir/.config/$profile/waybar_hypr" ]; then
+            cp -r "$dir/.config/$profile/waybar_hypr" "$HOME/.config/waybar"
+        fi
     else
         rm -rf "$HOME/.config/sway" && mkdir -p ~/.config/sway
-        ln -s "$dir/.config/sway/config" "$HOME/.config/sway/config"
-        # Removed swaylock.sh script linking
+        cp "$dir/.config/sway/config" "$HOME/.config/sway/config"
+        
+        # Copy profile-specific waybar for sway
         rm -rf "$HOME/.config/waybar"
-        ln -s "$dir/.config/$profile/waybar_sway" "$HOME/.config/waybar"
+        if [ -d "$dir/.config/$profile/waybar_sway" ]; then
+            cp -r "$dir/.config/$profile/waybar_sway" "$HOME/.config/waybar"
+        fi
     fi
-    echo "- Configuration linking successful: true"
+    echo "- Configuration distribution successful: true"
 }
 
 conf_services() {
     # Clean service enablement list
-    sudo systemctl enable NetworkManager ufw earlyoom irqbalance gamemoded udisks2 ly
+    sudo systemctl enable NetworkManager ufw earlyoom irqbalance udisks2 ly@tty1.service
     
     # UFW Configuration
     echo "--- Configuring UFW Security ---"
@@ -134,7 +158,7 @@ conf_services() {
     sudo systemctl disable getty@tty1.service
     
     [[ $profile == "laptop" ]] && sudo systemctl enable tlp
-    [[ $ssh_choice == "y" || $ssh_choice == "Y" ]] && sudo systemctl enable sshd
+    [[ $ssh_choice == "y" || $ssh_choice == "Y" ]] && sudo systemctl enable sshd tailscaled.service
     
     sudo tee /etc/systemd/zram-generator.conf <<EOF
 [zram0]
@@ -159,8 +183,9 @@ build_pkgs
 sys_init
 conf_gpu
 conf_grub
-link_dots
+distribute_dots
 conf_services
 
 echo "--- Install Successful: true ---"
-sleep 2 && reboot
+echo "You can now safely remove the /Rice directory if desired."
+sleep 5 && reboot
