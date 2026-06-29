@@ -20,7 +20,7 @@ setup_vars() {
 }
 
 build_pkgs() {
-    base=(fish neovim tldr btop yazi udisks2 rofi-wayland waybar mako zen-browser-bin vesktop spotify-launcher bluetui wifitui-bin ttf-profont-nerd bibata-cursor-theme-bin ly earlyoom zram-generator gamemode lib32-gamemode fastfetch cliphist irqbalance wl-clipboard 7zip tailscale fail2ban)
+    base=(fish neovim tldr btop yazi udisks2 rofi-wayland waybar mako zen-browser-bin vesktop spotify-launcher pipemixer bluetui wifitui-bin ttf-profont-nerd bibata-cursor-theme-bin ly earlyoom zram-generator gamemode lib32-gamemode fastfetch cliphist irqbalance wl-clipboard 7zip tailscale fail2ban)
     hypr=(hyprland hyprpaper hypridle hyprlock hyprshot xdg-desktop-portal-hyprland)
     sway=(swayfx swaybg swayidle swaylock-effects-git grim slurp xdg-desktop-portal-wlr autotiling)
     port=(tlp acpi_call tp_smapi brightnessctl acpi x86_energy_perf_policy)
