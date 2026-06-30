@@ -1,191 +1,91 @@
 #!/usr/bin/env bash
 
+# Stop on error, exit if any command fails
 set -e
 
-# Interactive Setup
+# --- Setup Variables ---
 setup_vars() {
     echo "--- Gruvbox Rice Installer ---"
-    echo "!! WARNING: Verify drivers in script before proceeding !!"
-    echo "!! NOTE: Tailscale requires manual 'tailscale up' after install !!"
+    read -p "WM (1: Hyprland, 2: Sway): " wm_choice
+    read -p "Is this a laptop? (y/n): " laptop_choice
+    read -p "GPU (1: AMD, 2: NVIDIA, 3: Intel, 4: VM): " gpu_choice
+    read -p "Install SSH & Tailscale? (y/n): " ssh_choice
     
-    read -p "WM (1: Hypr, 2: Sway): " wm
-    read -p "Laptop (y/n): " laptop
-    read -p "GPU (1: AMD, 2: NVIDIA, 3: Intel, 4: VM): " gpu
-    read -p "Install SSH (y/n): " ssh_choice
-    
-    [[ $wm == "1" ]] && term="alacritty" || term="foot"
-    [[ $laptop == "y" || $laptop == "Y" ]] && profile="laptop" || profile="desktop"
-    
-    echo "- Setup variables initialized: true"
+    # Logic for profiles
+    [[ "$laptop_choice" =~ ^[Yy]$ ]] && profile="laptop" || profile="desktop"
+    [[ "$wm_choice" == "1" ]] && wm="hypr" || wm="sway"
+    [[ "$wm" == "hypr" ]] && term="alacritty" || term="foot"
 }
 
+# --- Build Package Lists ---
 build_pkgs() {
-    base=(fish neovim tldr btop yazi udisks2 rofi-wayland waybar mako zen-browser-bin vesktop spotify-launcher pipemixer bluetui wifitui-bin ttf-profont-nerd bibata-cursor-theme-bin ly earlyoom zram-generator gamemode lib32-gamemode fastfetch cliphist irqbalance wl-clipboard 7zip tailscale fail2ban)
-    hypr=(hyprland hyprpaper hypridle hyprlock hyprshot xdg-desktop-portal-hyprland)
-    sway=(swayfx swaybg swayidle swaylock-effects-git grim slurp xdg-desktop-portal-wlr autotiling)
-    port=(tlp acpi_call tp_smapi brightnessctl acpi x86_energy_perf_policy)
-    amd=(mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon libva-mesa-driver lib32-libva-mesa-driver)
-    nv=(nvidia-dkms nvidia-utils lib32-nvidia-utils nvidia-settings egl-wayland libva-nvidia-driver)
-    intel=(mesa lib32-mesa vulkan-intel lib32-vulkan-intel intel-media-driver libva-intel-driver libva-utils)
-
-    list=("${base[@]}")
-    [[ $wm == "1" ]] && list+=("${hypr[@]}") || list+=("${sway[@]}")
-    [[ $ssh_choice == "y" || $ssh_choice == "Y" ]] && list+=("openssh")
-    list+=("$term")
-    [[ $profile == "laptop" ]] && list+=("${port[@]}")
+    # Base packages
+    pkgs=(fish neovim tldr btop yazi udisks2 rofi-wayland mako zen-browser-bin vesktop spotify-launcher pipemixer bluetui wifitui-bin ttf-profont-nerd bibata-cursor-theme-bin ly earlyoom zram-generator gamemode lib32-gamemode fastfetch cliphist irqbalance wl-clipboard 7zip)
     
-    case $gpu in
-        1) list+=("${amd[@]}") ;;
-        2) list+=("${nv[@]}") ;;
-        3) list+=("${intel[@]}") ;;
-        *) list+=("mesa" "lib32-mesa") ;;
+    # Conditional logic
+    [[ "$ssh_choice" =~ ^[Yy]$ ]] && pkgs+=(openssh tailscale)
+    [[ "$wm" == "hypr" ]] && pkgs+=(hyprland hyprpaper hypridle hyprlock hyprshot xdg-desktop-portal-hyprland)
+    [[ "$wm" == "sway" ]] && pkgs+=(swayfx swaybg swayidle swaylock-effects-git grim slurp xdg-desktop-portal-wlr autotiling)
+    [[ "$profile" == "laptop" ]] && pkgs+=(tlp acpi_call tp_smapi brightnessctl acpi x86_energy_perf_policy)
+    
+    case $gpu_choice in
+        1) pkgs+=(mesa lib32-mesa vulkan-radeon lib32-vulkan-radeon libva-mesa-driver lib32-libva-mesa-driver) ;;
+        2) pkgs+=(nvidia-dkms nvidia-utils lib32-nvidia-utils nvidia-settings egl-wayland libva-nvidia-driver) ;;
+        3) pkgs+=(mesa lib32-mesa vulkan-intel lib32-vulkan-intel intel-media-driver libva-intel-driver libva-utils) ;;
     esac
-    
-    echo "- Package list built: true"
+    pkgs+=("$term")
 }
 
+# --- Install & Cleanup ---
 sys_init() {
-    sudo pacman -Syu --noconfirm
-    sudo pacman -S --needed --noconfirm base-devel git
+    sudo pacman -Syu --needed --noconfirm base-devel git
     
+    # Safe install of yay using mktemp
     if ! command -v yay &> /dev/null; then
-        git clone https://aur.archlinux.org/yay.git /tmp/yay
-        cd /tmp/yay && makepkg -si --noconfirm
-        cd - && rm -rf /tmp/yay
+        local build_dir=$(mktemp -d)
+        git clone https://aur.archlinux.org/yay.git "$build_dir"
+        (cd "$build_dir" && makepkg -si --noconfirm)
+        rm -rf "$build_dir"
     fi
     
-    yay -S --needed --noconfirm "${list[@]}"
-    echo "- System base initialized: true"
+    yay -S --needed "${pkgs[@]}"
 }
 
-conf_gpu() {
-    if [[ $gpu == "2" ]]; then
-        if [ -f /etc/mkinitcpio.conf ]; then
-            sudo sed -i 's/^MODULES=(/MODULES=(nvidia nvidia_modeset nvidia_uvm nvidia_drm /' /etc/mkinitcpio.conf
-            sudo mkinitcpio -P
-        fi
-        sudo tee /etc/profile.d/nvidia.sh <<EOF
-export GBM_BACKEND=nvidia-drm
-export __GLX_VENDOR_LIBRARY_NAME=nvidia
-export LIBVA_DRIVER_NAME=nvidia
-EOF
-        sudo chmod +x /etc/profile.d/nvidia.sh
+cleanup_system() {
+    echo "--- Cleaning orphans ---"
+    local orphans=$(pacman -Qdtq)
+    if [[ -n "$orphans" ]]; then
+        sudo pacman -Rns --noconfirm $orphans
     fi
-    echo "- GPU configuration applied: true"
 }
 
-conf_grub() {
-    if [ -f /etc/default/grub ]; then
-        echo "--- Installing OldBIOS GRUB Theme ---"
-        rm -rf /tmp/grub_theme
-        git clone https://github.com/Blaysht/grub_bios_theme.git /tmp/grub_theme
-        sudo mkdir -p /boot/grub/themes
-        sudo cp -r /tmp/grub_theme/OldBIOS /boot/grub/themes/
-        
-        sudo sed -i 's/^GRUB_GFXMODE=.*/GRUB_GFXMODE=1920x1080,auto/' /etc/default/grub
-        sudo sed -i 's|^#GRUB_THEME=.*|GRUB_THEME="/boot/grub/themes/OldBIOS/theme.txt"|' /etc/default/grub
-        [[ $gpu == "2" ]] && sudo sed -i 's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="nvidia-drm.modeset=1 /' /etc/default/grub
-        sudo grub-mkconfig -o /boot/grub/grub.cfg
-    fi
-    echo "- GRUB configuration applied: true"
-}
-
-distribute_dots() {
-    dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    mkdir -p ~/.config
-    
-    # Core global apps (Only adds the terminal you actually selected)
-    core=(background btop fish mako rofi swaylock)
-    core+=("$term")
-    
-    # Copy selected global apps directly into .config
-    for app in "${core[@]}"; do
-        rm -rf "$HOME/.config/$app"
-        if [ -d "$dir/.config/$app" ]; then
-            cp -r "$dir/.config/$app" "$HOME/.config/$app"
-        fi
-    done
-    
-    # Copy profile-specific fastfetch configurations directly
-    rm -rf "$HOME/.config/fastfetch"
-    if [ -d "$dir/.config/$profile/fastfetch" ]; then
-        cp -r "$dir/.config/$profile/fastfetch" "$HOME/.config/fastfetch"
-    fi
-    
-    # Distribute Window Manager & Profile-specific setups cleanly
-    if [[ $wm == "1" ]]; then
-        rm -rf "$HOME/.config/hypr" && mkdir -p ~/.config/hypr
-        cp "$dir/.config/hypr/hyprland.conf" "$HOME/.config/hypr/hyprland.conf"
-        cp "$dir/.config/hypr/hyprlock.conf" "$HOME/.config/hypr/hyprlock.conf"
-        cp "$dir/.config/hypr/hyprpaper.conf" "$HOME/.config/hypr/hyprpaper.conf"
-        
-        # Copy profile-specific hypridle
-        if [ -f "$dir/.config/$profile/hypr/hypridle.conf" ]; then
-            cp "$dir/.config/$profile/hypr/hypridle.conf" "$HOME/.config/hypr/hypridle.conf"
-        fi
-        
-        # Copy profile-specific waybar for hyprland
-        rm -rf "$HOME/.config/waybar"
-        if [ -d "$dir/.config/$profile/waybar_hypr" ]; then
-            cp -r "$dir/.config/$profile/waybar_hypr" "$HOME/.config/waybar"
-        fi
-    else
-        rm -rf "$HOME/.config/sway" && mkdir -p ~/.config/sway
-        cp "$dir/.config/sway/config" "$HOME/.config/sway/config"
-        
-        # Copy profile-specific waybar for sway
-        rm -rf "$HOME/.config/waybar"
-        if [ -d "$dir/.config/$profile/waybar_sway" ]; then
-            cp -r "$dir/.config/$profile/waybar_sway" "$HOME/.config/waybar"
-        fi
-    fi
-    echo "- Configuration distribution successful: true"
-}
-
+# --- Configurations (Services) ---
 conf_services() {
-    # Clean service enablement list
     sudo systemctl enable NetworkManager ufw earlyoom irqbalance udisks2 ly@tty1.service
     
-    # UFW Configuration
-    echo "--- Configuring UFW Security ---"
+    [[ "$profile" == "laptop" ]] && sudo systemctl enable tlp
+    [[ "$ssh_choice" =~ ^[Yy]$ ]] && sudo systemctl enable sshd tailscaled
+    
+    # UFW
     sudo ufw default deny incoming
     sudo ufw default allow outgoing
-    sudo ufw allow ssh
-    sudo ufw allow 41641/udp # Tailscale
+    [[ "$ssh_choice" =~ ^[Yy]$ ]] && sudo ufw allow ssh
     sudo ufw --force enable
     
-    # Display Manager Setup
-    sudo systemctl disable getty@tty1.service
+    # ZRAM
+    echo "zram-size = min(ram / 2, 4096)" | sudo tee /etc/systemd/zram-generator.conf > /dev/null
     
-    [[ $profile == "laptop" ]] && sudo systemctl enable tlp
-    [[ $ssh_choice == "y" || $ssh_choice == "Y" ]] && sudo systemctl enable sshd tailscaled.service
-    
-    sudo tee /etc/systemd/zram-generator.conf <<EOF
-[zram0]
-zram-size = min(ram / 2, 4096)
-compression-algorithm = zstd
-EOF
-    
-    echo "--- Configuring Fish Shell ---"
-    sudo pacman -S --needed --noconfirm curl
-    fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher"
-    fish -c "fisher install franciscolourenco/done"
-    
-    sudo chsh -s /usr/bin/fish $USER
-    
-    # Cleanup temp build files
-    rm -rf /tmp/yay /tmp/grub_theme
-    echo "- Services and shell configured (Temp cleaned): true"
+    # Shell
+    sudo chsh -s /usr/bin/fish "$USER"
 }
 
+# --- Main Flow ---
 setup_vars
 build_pkgs
 sys_init
-conf_gpu
-conf_grub
-distribute_dots
+cleanup_system
 conf_services
 
-echo "--- Install Successful: true ---"
-echo "You can now safely remove the /Rice directory if desired."
-sleep 5 && reboot
+echo "--- Installation Complete ---"
+read -p "Reboot now? (y/n): " reboot_choice
+[[ "$reboot_choice" =~ ^[Yy]$ ]] && reboot
