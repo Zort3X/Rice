@@ -1,0 +1,106 @@
+@define-color base     #282828;
+@define-color mantle   #1d2021;
+@define-color crust    #181616;
+@define-color surface0 #32302f;
+@define-color surface1 #3c3836;
+@define-color surface-mid #373533;
+@define-color overlay0 #928374;
+@define-color text     #ebdbb2;
+@define-color subtext0 #d5c4a1;
+@define-color blue     #83a598;
+@define-color mauve    #d3869b;
+@define-color red      #fb4934;
+@define-color green    #b8bb26;
+@define-color yellow   #fabd2f;
+@define-color peach    #fe8019;
+
+* {
+    font-family: "ProFont IIx Nerd Font", monospace;
+    font-size: 15px;
+    font-weight: bold;
+    min-height: 0;
+    border: none;
+    text-shadow: none;
+}
+
+window#waybar {
+    background: transparent;
+}
+
+.modules-left,
+.modules-right {
+    background: @base;
+    border-radius: 14px;
+    padding: 3px 6px;
+    margin: 0;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.2);
+}
+
+.modules-left {
+    margin-left: 10px;
+}
+
+.modules-right {
+    margin-right: 10px;
+}
+
+#workspaces,
+#window,
+#clock,
+#custom-volume,
+#custom-mic,
+#custom-network,
+#bluetooth,
+#battery,
+#language {
+    background: @surface-mid;
+    border-radius: 10px;
+    padding: 1px 12px;
+    margin: 0 4px;
+    color: @text;
+    transition: all 0.3s cubic-bezier(.55,.055,.675,.19);
+}
+
+#workspaces button {
+    color: @text;
+    padding: 0 4px;
+    margin: 0 3px;
+    border-radius: 6px;
+    transition: all 0.2s ease-in-out;
+}
+
+#workspaces button.active {
+    color: @crust;
+    background: @green;
+    padding: 0 10px;
+}
+
+#workspaces button:hover {
+    background: @surface1;
+    box-shadow: inherit;
+    text-shadow: inherit;
+}
+
+#clock {
+    padding: 1px 16px;
+    min-width: 85px;
+}
+
+#custom-sep {
+    color: @overlay0;
+    opacity: 0.5;
+    padding: 0 2px;
+}
+
+/* Calendar Tooltip Styling */
+tooltip {
+    background: @base;
+    border: 2px solid @surface1;
+    border-radius: 10px;
+}
+
+tooltip label {
+    padding: 12px 16px;
+    font-family: "ProFont IIx Nerd Font Mono";
+    font-weight: bold;
+}
