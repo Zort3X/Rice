@@ -66,17 +66,17 @@
         "custom/volume": {
             "exec": "vol=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print int($2*100)}'); muted=$(wpctl get-volume @DEFAULT_AUDIO_SINK@ | grep MUTED); if [ -n \"$muted\" ]; then echo \"VOL: <span color='#fb4934'>Muted</span>\"; else if [ $vol -ge 80 ]; then color='#b8bb26'; elif [ $vol -ge 65 ]; then color='#83a598'; elif [ $vol -ge 26 ]; then color='#fabd2f'; else color='#fb4934'; fi; echo \"VOL: <span color='$color'>$vol%</span>\"; fi",
             "interval": 1,
-            "on-click": "pavucontrol"
+            "on-click": "alacritty -e pipemixer"
         },
         "custom/mic": {
             "exec": "vol=$(wpctl get-volume @DEFAULT_AUDIO_SOURCE@ | awk '{print int($2*100)}'); muted=$(wpctl get-volume @DEFAULT_AUDIO_SOURCE@ | grep MUTED); if [ -n \"$muted\" ]; then echo \"MIC: <span color='#fb4934'>Muted</span>\"; else if [ $vol -ge 80 ]; then color='#b8bb26'; elif [ $vol -ge 65 ]; then color='#83a598'; elif [ $vol -ge 26 ]; then color='#fabd2f'; else color='#fb4934'; fi; echo \"MIC: <span color='$color'>$vol%</span>\"; fi",
             "interval": 1,
-            "on-click": "pavucontrol"
+            "on-click": "alacritty -e pipemixer"
         },
         "custom/network": {
             "exec": "if nmcli device status | grep \"connected\" | grep -q \"ethernet\"; then echo \"NET: <span color='#b8bb26'>Connected</span>\"; else sig=$(nmcli -t -f SIGNAL,ACTIVE device wifi | grep \"yes\" | cut -d: -f1); if [ -z \"$sig\" ]; then echo \"NET: <span color='#fb4934'>Disconnected</span>\"; else if [ $sig -ge 80 ]; then color='#b8bb26'; elif [ $sig -ge 65 ]; then color='#83a598'; elif [ $sig -ge 26 ]; then color='#fabd2f'; else color='#fb4934'; fi; echo \"NET: <span color='$color'>$sig%</span>\"; fi; fi",
             "interval": 2,
-            "on-click": "nm-connection-editor"
+            "on-click": "alacritty -e nmtui"
         },
         "bluetooth": {
             "format": "BT: <span color='#b8bb26'>On</span>",
@@ -84,7 +84,7 @@
             "format-off": "BT: <span color='#fb4934'>Off</span>",
             "format-disabled": "BT: <span color='#fb4934'>Off</span>",
             "format-connected": "BT: <span color='#b8bb26'>{device_alias}</span>",
-            "on-click": "blueman-manager"
+            "on-click": "alacritty -e bluetui"
         },
         "hyprland/language": {
             "format": "Lg: <span color='#8ec07c'>{}</span>",

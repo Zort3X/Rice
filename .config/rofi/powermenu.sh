@@ -1,5 +1,18 @@
 #!/usr/bin/env bash
 
+# Detect which WM we're actually running under, so Lock/Logout call the
+# right binary (hyprlock/hyprctl on Hyprland, swaylock/swaymsg on Sway).
+if [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]; then
+    lock_cmd="hyprlock"
+    logout_cmd="hyprctl dispatch exit"
+elif [ -n "$SWAYSOCK" ]; then
+    lock_cmd="swaylock"
+    logout_cmd="swaymsg exit"
+else
+    lock_cmd="loginctl lock-session"
+    logout_cmd="loginctl terminate-session $XDG_SESSION_ID"
+fi
+
 # Options
 shutdown=' Shutdown'
 reboot='󰜉 Reboot'
@@ -25,12 +38,12 @@ case ${chosen} in
 		systemctl reboot
         ;;
     $lock)
-		hyprlock
+		$lock_cmd
         ;;
     $suspend)
 		systemctl suspend
         ;;
     $logout)
-		hyprctl dispatch exit
+		$logout_cmd
         ;;
 esac

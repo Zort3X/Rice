@@ -1,0 +1,6 @@
+# Runtime logs, not config
+*.log
+install.log
+
+# Rice backups created by install.sh
+.rice-backup-*

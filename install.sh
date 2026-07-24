@@ -182,6 +182,7 @@ ask_yn() {
 setup_vars() {
     log "--- Gruvbox Rice Installer ---"
     echo "!! NOTE: Tailscale requires manual 'tailscale up' after install !!"
+    echo "!! First time running this? See 'Read This If You're Not Me' in README.md !!"
 
     if [[ -n "${wm_flag:-}" ]]; then
         case "$wm_flag" in
@@ -416,6 +417,11 @@ distribute_dots() {
         if [ -f "$SCRIPT_DIR/.config/$profile/hypr/hypridle.conf" ]; then
             cp "$SCRIPT_DIR/.config/$profile/hypr/hypridle.conf" "$HOME/.config/hypr/hypridle.conf"
         fi
+        if [ -f "$SCRIPT_DIR/.config/$profile/hypr/monitor.conf" ]; then
+            cp "$SCRIPT_DIR/.config/$profile/hypr/monitor.conf" "$HOME/.config/hypr/monitor.conf"
+        else
+            log_warn "No monitor.conf found for profile '$profile', Hyprland will fall back to its own auto-detection."
+        fi
         backup_path "$HOME/.config/waybar"
         if [ -d "$SCRIPT_DIR/.config/$profile/waybar_hypr" ]; then
             cp -r "$SCRIPT_DIR/.config/$profile/waybar_hypr" "$HOME/.config/waybar"
@@ -424,6 +430,11 @@ distribute_dots() {
         backup_path "$HOME/.config/sway"
         mkdir -p ~/.config/sway
         [ -f "$SCRIPT_DIR/.config/sway/config" ] && cp "$SCRIPT_DIR/.config/sway/config" "$HOME/.config/sway/config"
+        if [ -f "$SCRIPT_DIR/.config/$profile/sway/idle.conf" ]; then
+            cp "$SCRIPT_DIR/.config/$profile/sway/idle.conf" "$HOME/.config/sway/idle.conf"
+        else
+            log_warn "No idle.conf found for profile '$profile', sway idle behavior will be undefined until you add one."
+        fi
         backup_path "$HOME/.config/waybar"
         if [ -d "$SCRIPT_DIR/.config/$profile/waybar_sway" ]; then
             cp -r "$SCRIPT_DIR/.config/$profile/waybar_sway" "$HOME/.config/waybar"
@@ -568,7 +579,13 @@ log "--- Installation Complete ---"
 
 echo
 echo "Post-install checklist:"
-echo "  1. Monitor resolution — check ~/.config/$([[ "$wm" == "hypr" ]] && echo 'hypr/hyprland.conf' || echo 'sway/config')"
+if [[ "$wm" == "hypr" ]]; then
+    echo "  1. Monitor resolution — check ~/.config/hypr/monitor.conf"
+    echo "     (find your real output name/modes with: hyprctl monitors all)"
+else
+    echo "  1. Monitor resolution — check ~/.config/sway/config (Sway auto-detects by default)"
+    echo "     (find your real output name/modes with: swaymsg -t get_outputs)"
+fi
 echo "  2. Keyboard layout — confirm in the WM input section (default: us,bg)"
 echo "  3. Appearance — check cursor theme and GTK settings for consistency"
 echo

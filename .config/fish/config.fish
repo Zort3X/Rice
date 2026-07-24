@@ -23,4 +23,6 @@ if status is-interactive
     end
 end
 
-fish_add_path /home/zert/.opencode/bin
+if test -d "$HOME/.opencode/bin"
+    fish_add_path "$HOME/.opencode/bin"
+end
