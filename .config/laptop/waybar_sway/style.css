@@ -51,7 +51,7 @@ window#waybar {
 #custom-mic,
 #custom-network,
 #bluetooth,
-#battery,
+#custom-battery,
 #language {
     background: @surface-mid;
     border-radius: 10px;
